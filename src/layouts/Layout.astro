@@ -37,7 +37,7 @@ const canonical = new URL(path, Astro.site);
         {path !== '/' && <a class="wordmark" href="/" aria-label="Sayam Goyal home">{site.name}</a>}
         <div class="header-controls">
         <nav aria-label="Main navigation">
-          {[['/', 'Home'], ['/projects/', 'Projects'], ['/blog/', 'Writing']].map(([href, label]) => (
+          {[['/', 'Home'], ...(site.showProjects ? [['/projects/', 'Projects']] : []), ...(site.showWriting ? [['/blog/', 'Writing']] : [])].map(([href, label]) => (
             <a href={href} aria-current={(href === '/' ? path === '/' : path.startsWith(href)) ? 'page' : undefined}>{label}</a>
           ))}
         </nav>

@@ -12,6 +12,7 @@ jobs:
   deploy:
     if: vars.HOSTINGER_DEPLOY_ENABLED == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     environment: production
     steps:
       - uses: actions/checkout@v4
@@ -21,34 +22,12 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
-      - name: Install transfer client
-        run: sudo apt-get update && sudo apt-get install -y lftp
-      - name: Upload static files over FTPS
+      - name: Upload static files over SFTP
+        timeout-minutes: 4
         env:
-          FTP_HOST: ${{ secrets.HOSTINGER_FTP_HOST }}
-          FTP_USER: ${{ secrets.HOSTINGER_FTP_USER }}
-          FTP_PASSWORD: ${{ secrets.HOSTINGER_FTP_PASSWORD }}
-          FTP_DIRECTORY: ${{ vars.HOSTINGER_FTP_DIRECTORY || 'public_html' }}
-        run: |
-          python3 - <<'PYTHON'
-          import os, subprocess
-          def quote(value):
-              if any(c in value for c in ('\n', '\r', '\x00')):
-                  raise ValueError('Unexpected control character in deployment setting')
-              return '"' + value.replace('\\', '\\\\').replace('"', '\\"').replace('$', '\\$').replace('`', '\\`') + '"'
-          host = os.environ['FTP_HOST']
-          if '://' in host or '/' in host:
-              raise ValueError('FTP host must be a hostname only')
-          script = '\n'.join([
-              'set cmd:fail-exit yes',
-              'set ftp:ssl-force yes',
-              'set ftp:ssl-protect-data yes',
-              'set ssl:verify-certificate yes',
-              'set net:max-retries 2',
-              'open ' + quote('ftp://' + host),
-              'user ' + quote(os.environ['FTP_USER']) + ' ' + quote(os.environ['FTP_PASSWORD']),
-              'mirror --reverse --verbose --exclude-glob .htaccess dist/ ' + quote(os.environ['FTP_DIRECTORY']),
-              'bye',
-          ])
-          subprocess.run(['lftp'], input=script, text=True, check=True)
-          PYTHON
+          SSH_HOST: ${{ secrets.HOSTINGER_SSH_HOST }}
+          SSH_PORT: ${{ secrets.HOSTINGER_SSH_PORT }}
+          SSH_USER: ${{ secrets.HOSTINGER_SSH_USER }}
+          SSH_PRIVATE_KEY: ${{ secrets.HOSTINGER_SSH_PRIVATE_KEY }}
+          SSH_DIRECTORY: ${{ vars.HOSTINGER_SSH_DIRECTORY }}
+        run: python3 scripts/deploy-sftp.py

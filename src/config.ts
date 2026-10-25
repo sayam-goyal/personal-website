@@ -1,6 +1,8 @@
 // Add your real URLs here. Empty links are shown as “coming soon”.
 export const site = {
   name: 'Sayam Goyal',
+  showProjects: false,
+  showWriting: false,
   description: 'CS student exploring technology, AI, language models, and quantitative thinking.',
   email: 'samnews07@gmail.com',
   resume: '', // Add public/resume.pdf, then set this to /resume.pdf
