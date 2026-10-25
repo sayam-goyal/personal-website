@@ -21,7 +21,7 @@ const canonical = new URL(path, Astro.site);
         document.querySelector('meta[name="theme-color"]').setAttribute('content', theme === 'light' ? '#F9F8F6' : '#242427');
       })();
     </script>
-    <title>{title ? `${title} — ${site.name}` : `${site.name} — A work in progress`}</title>
+    <title>{site.name}</title>
     <link rel="canonical" href={canonical} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="alternate" type="application/rss+xml" title={`${site.name} — Writing`} href="/rss.xml" />
