@@ -10,14 +10,12 @@ const links = [
   { label: 'LinkedIn', url: site.linkedin },
   { label: 'Twitter/X', url: site.twitter },
   { label: 'Google Scholar', url: site.scholar },
-  { label: 'Book a conversation', url: site.booking },
 ];
 ---
 <Layout>
   <section class="hero">
     <h1>Sayam Goyal</h1>
-    <p class="intro">I’m a computer science student interested in tech, AI, language models, and quant.</p>
-    <p class="intro">A small place for things I’m building and learning.</p>
+    <p class="intro">I'm Sayam, currently I'm a Software Engineering Intern @ Tesla, and I spent last summer at Roblox. I'm also studying CS/ML at Purdue.</p>
     <div class="hero-links" aria-label="Find me online">
       {links.map(link => link.url ? <a href={link.url} target={link.url.startsWith('mailto:') ? undefined : '_blank'} rel={link.url.startsWith('mailto:') ? undefined : 'noopener noreferrer'}>{link.label}</a> : <span class="unconfigured" title="Coming soon">{link.label}<span class="sr-only"> (coming soon)</span></span>)}
     </div>
