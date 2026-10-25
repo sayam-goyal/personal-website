@@ -1,0 +1,3 @@
+# Serve Astro directory routes and use its custom not-found page on Hostinger.
+DirectoryIndex index.html
+ErrorDocument 404 /404.html

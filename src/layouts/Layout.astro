@@ -1,0 +1,73 @@
+---
+import '../styles/global.css';
+import { site } from '../config';
+interface Props { title?: string; description?: string; }
+const { title, description = site.description } = Astro.props;
+const path = Astro.url.pathname;
+const canonical = new URL(path, Astro.site);
+---
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#242427" />
+    <script is:inline>
+      (() => {
+        let theme = 'dark';
+        try { if (localStorage.getItem('theme') === 'light') theme = 'light'; } catch {}
+        document.documentElement.dataset.theme = theme;
+        document.querySelector('meta[name="theme-color"]').setAttribute('content', theme === 'light' ? '#F9F8F6' : '#242427');
+      })();
+    </script>
+    <title>{title ? `${title} — ${site.name}` : `${site.name} — A work in progress`}</title>
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="alternate" type="application/rss+xml" title={`${site.name} — Writing`} href="/rss.xml" />
+    <meta property="og:title" content={title ? `${title} — ${site.name}` : site.name} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonical} />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <div class="shell">
+      <header class:list={['header', { 'header-home': path === '/' }]}>
+        {path !== '/' && <a class="wordmark" href="/" aria-label="Sayam Goyal home">{site.name}</a>}
+        <div class="header-controls">
+        <nav aria-label="Main navigation">
+          {[['/', 'Home'], ['/projects/', 'Projects'], ['/blog/', 'Writing']].map(([href, label]) => (
+            <a href={href} aria-current={(href === '/' ? path === '/' : path.startsWith(href)) ? 'page' : undefined}>{label}</a>
+          ))}
+        </nav>
+        <button class="theme-toggle" type="button" role="switch" aria-label="Dark mode" aria-checked="true" title="Switch color theme">
+          <span class="switch-track" aria-hidden="true">
+            <span class="switch-thumb">
+              <svg class="moon-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 13A8.5 8.5 0 0 1 11 3.5 8.5 8.5 0 1 0 20.5 13Z" /></svg>
+              <svg class="sun-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/></svg>
+            </span>
+          </span>
+        </button>
+        </div>
+      </header>
+      <main id="main"><slot /></main>
+    </div>
+    <script>
+      const toggle = document.querySelector<HTMLButtonElement>('.theme-toggle');
+      function updateToggle() {
+        const dark = document.documentElement.dataset.theme !== 'light';
+        toggle?.setAttribute('aria-checked', String(dark));
+        toggle?.setAttribute('title', dark ? 'Switch to light mode' : 'Switch to dark mode');
+      }
+      updateToggle();
+      toggle?.addEventListener('click', () => {
+        const theme = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
+        document.documentElement.dataset.theme = theme;
+        try { localStorage.setItem('theme', theme); } catch {}
+        document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'light' ? '#F9F8F6' : '#242427');
+        updateToggle();
+      });
+    </script>
+  </body>
+</html>

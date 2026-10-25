@@ -1,0 +1,54 @@
+name: Deploy to Hostinger
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: hostinger-production
+  cancel-in-progress: false
+jobs:
+  deploy:
+    if: vars.HOSTINGER_DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Install transfer client
+        run: sudo apt-get update && sudo apt-get install -y lftp
+      - name: Upload static files over FTPS
+        env:
+          FTP_HOST: ${{ secrets.HOSTINGER_FTP_HOST }}
+          FTP_USER: ${{ secrets.HOSTINGER_FTP_USER }}
+          FTP_PASSWORD: ${{ secrets.HOSTINGER_FTP_PASSWORD }}
+          FTP_DIRECTORY: ${{ vars.HOSTINGER_FTP_DIRECTORY || 'public_html' }}
+        run: |
+          python3 - <<'PYTHON'
+          import os, subprocess
+          def quote(value):
+              if any(c in value for c in ('\n', '\r', '\x00')):
+                  raise ValueError('Unexpected control character in deployment setting')
+              return '"' + value.replace('\\', '\\\\').replace('"', '\\"').replace('$', '\\$').replace('`', '\\`') + '"'
+          host = os.environ['FTP_HOST']
+          if '://' in host or '/' in host:
+              raise ValueError('FTP host must be a hostname only')
+          script = '\n'.join([
+              'set cmd:fail-exit yes',
+              'set ftp:ssl-force yes',
+              'set ftp:ssl-protect-data yes',
+              'set ssl:verify-certificate yes',
+              'set net:max-retries 2',
+              'open ' + quote('ftp://' + host),
+              'user ' + quote(os.environ['FTP_USER']) + ' ' + quote(os.environ['FTP_PASSWORD']),
+              'mirror --reverse --verbose --exclude-glob .htaccess dist/ ' + quote(os.environ['FTP_DIRECTORY']),
+              'bye',
+          ])
+          subprocess.run(['lftp'], input=script, text=True, check=True)
+          PYTHON

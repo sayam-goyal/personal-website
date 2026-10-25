@@ -1,0 +1,21 @@
+---
+import { render } from 'astro:content';
+import type { CollectionEntry } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+import { getPosts, formatDate } from '../../lib/posts';
+export async function getStaticPaths() {
+  return (await getPosts()).map(post => ({ params: { id: post.id }, props: { post } }));
+}
+interface Props { post: CollectionEntry<'blog'>; }
+const { post } = Astro.props;
+const { Content } = await render(post);
+---
+<Layout title={post.data.title} description={post.data.description}>
+  <article class="article">
+    <a class="back-link mono" href="/blog/">← ALL WRITING</a>
+    <header class="article-header"><p class="eyebrow mono"><time datetime={post.data.date.toISOString()}>{formatDate(post.data.date)}</time> / {post.data.tags.join(' · ')}</p><h1>{post.data.title}</h1><p class="intro">{post.data.description}</p></header>
+    {post.data.sample && <aside class="editor-note">This is a sample article included with the starter template. Replace it with your own writing.</aside>}
+    <div class="prose"><Content /></div>
+    <div class="article-end mono">END OF NOTE <span class="accent">/</span> <a href="/blog/">BACK TO THE INDEX ↗</a></div>
+  </article>
+</Layout>

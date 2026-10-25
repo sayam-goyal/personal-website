@@ -1,0 +1,11 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import PostList from '../../components/PostList.astro';
+import { getPosts } from '../../lib/posts';
+const posts = await getPosts();
+---
+<Layout title="Writing">
+  <section class="page-intro"><h1>Writing</h1><p class="intro">Notes on technology and things I’m learning.</p></section>
+  <div class="archive-heading mono"><span>{posts.length} {posts.length === 1 ? 'ENTRY' : 'ENTRIES'}</span></div>
+  <PostList posts={posts} />
+</Layout>
